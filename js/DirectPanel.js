@@ -14,12 +14,13 @@
 //   • логин, пароль и код 2FA, как в других разделах;
 //   • журнал трат: «потрачено робуксов» и «куплено геймпассов на» (× 0,7).
 // =====================================================================
-import { useCallback, useEffect, useState } from "./vendor/react.js?v=8508abad";
-import { supabase, errText } from "./supabase.js?v=8508abad";
-import { fmt } from "./calc.js?v=8508abad";
-import { Num, Rbx } from "./ui.js?v=8508abad";
-import { useRoute, href } from "./router.js?v=8508abad";
-import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js?v=8508abad";
+import { useCallback, useEffect, useState } from "./vendor/react.js?v=0208e316";
+import { supabase, errText } from "./supabase.js?v=0208e316";
+import { fmt } from "./calc.js?v=0208e316";
+import { Num, Rbx } from "./ui.js?v=0208e316";
+import { useRoute, href } from "./router.js?v=0208e316";
+import { SitePicker, useSite, siteLabel } from "./sites.js?v=0208e316";
+import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js?v=0208e316";
 /** Доля баланса, которая реально доходит до продажи через геймпасс. */
 export const DIRECT_RATE = 0.7;
 // ---------- Расчёты ----------
@@ -349,6 +350,7 @@ function SpendForm({ acc, balance, data, say, onDone }) {
   const [buyer, setBuyer] = useState("");
   const [at, setAt] = useState(toLocalInput(Date.now()));
   const [busy, setBusy] = useState(false);
+  const [site, setSite] = useSite();
   const amt = Math.round(Number(amount)) || 0;
   async function submit(e) {
     e.preventDefault();
@@ -365,6 +367,7 @@ function SpendForm({ acc, balance, data, say, onDone }) {
       account_id: acc.id,
       robux: amt,
       buyer: buyer.trim() || null,
+      site: site || null,
       spent_at: new Date(at).toISOString(),
     });
     setBusy(false);
@@ -436,6 +439,7 @@ function SpendForm({ acc, balance, data, say, onDone }) {
           onChange: (e) => setAt(e.target.value),
         }),
       ),
+      React.createElement(SitePicker, { value: site, onChange: setSite }),
     ),
     React.createElement(
       "div",
@@ -745,6 +749,7 @@ function DirectJournal({ data, say }) {
                 null,
                 React.createElement("th", null, "Когда"),
                 React.createElement("th", null, "Аккаунт"),
+                React.createElement("th", null, "Площадка"),
                 React.createElement("th", null, "Покупатель"),
                 React.createElement("th", { className: "n" }, "Потрачено"),
                 React.createElement("th", { className: "n" }, "Куплено геймпассов на"),
@@ -760,6 +765,7 @@ function DirectJournal({ data, say }) {
                   { key: s.id },
                   React.createElement("td", { className: "num nowrap" }, dt(s.spent_at)),
                   React.createElement("td", null, React.createElement("b", null, name(s.account_id))),
+                  React.createElement("td", { className: "tag" }, siteLabel(s.site)),
                   React.createElement("td", { className: "tag" }, s.buyer || "—"),
                   React.createElement("td", { className: "n num" }, fmt(s.robux)),
                   React.createElement(

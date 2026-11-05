@@ -4,9 +4,9 @@
  * Файл собран из исходника src/Auth.ts*.
  */
 
-import { useState } from "./vendor/react.js?v=8508abad";
-import { supabase, errText } from "./supabase.js?v=8508abad";
-import { Mark } from "./Dashboard.js?v=8508abad";
+import { useState } from "./vendor/react.js?v=0208e316";
+import { supabase, errText } from "./supabase.js?v=0208e316";
+import { Mark } from "./Dashboard.js?v=0208e316";
 export function AuthScreen({ notice, onNotice } = {}) {
   const [mode, setMode] = useState("login");
   const [email, setEmail] = useState("");

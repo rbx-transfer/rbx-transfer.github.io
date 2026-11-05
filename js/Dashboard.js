@@ -4,18 +4,19 @@
  * Файл собран из исходника src/Dashboard.ts*.
  */
 
-import { useEffect, useRef, useState } from "./vendor/react.js?v=8508abad";
-import { supabase, errText, kickBroadcast } from "./supabase.js?v=8508abad";
-import { kindOf, calcAccount, fmt, fmtDate, dur, toLocalInput, DAY } from "./calc.js?v=8508abad";
-import { useTeamData } from "./useTeamData.js?v=8508abad";
-import { SendPanel, Buyers } from "./SendPanel.js?v=8508abad";
-import { PlusField, PlusBadge } from "./Plus.js?v=8508abad";
-import { MsPanel } from "./MsPanel.js?v=8508abad";
-import { DirectPanel } from "./DirectPanel.js?v=8508abad";
-import { useRoute, go, href } from "./router.js?v=8508abad";
-import { InviteCodes, Blacklist, UserStats, ProfitPage } from "./Admin.js?v=8508abad";
-import { Num, Rbx, ToastView } from "./ui.js?v=8508abad";
-import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js?v=8508abad";
+import { useEffect, useRef, useState } from "./vendor/react.js?v=0208e316";
+import { supabase, errText, kickBroadcast } from "./supabase.js?v=0208e316";
+import { kindOf, calcAccount, fmt, fmtDate, dur, toLocalInput, DAY } from "./calc.js?v=0208e316";
+import { useTeamData } from "./useTeamData.js?v=0208e316";
+import { SendPanel, Buyers } from "./SendPanel.js?v=0208e316";
+import { PlusField, PlusBadge } from "./Plus.js?v=0208e316";
+import { MsPanel } from "./MsPanel.js?v=0208e316";
+import { DirectPanel } from "./DirectPanel.js?v=0208e316";
+import { useRoute, go, href } from "./router.js?v=0208e316";
+import { SitePicker, useSite, siteLabel } from "./sites.js?v=0208e316";
+import { InviteCodes, Blacklist, UserStats, ProfitPage } from "./Admin.js?v=0208e316";
+import { Num, Rbx, ToastView } from "./ui.js?v=0208e316";
+import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js?v=0208e316";
 function ls(k, d) {
   try {
     return localStorage.getItem(k) || d;
@@ -105,7 +106,7 @@ function DashboardInner({ email, userId }) {
           React.createElement(AdminView, {
             me: userId,
             say: say,
-            statId: route[1] === "user" ? route[2] : undefined,
+            statId: route[1] === "user" || route[1] === "profit" ? route[2] : undefined,
             page: route[1],
             backHref: href(siteBack),
           }),
@@ -836,6 +837,7 @@ function EditAccount({ gp, acc, balance, transfers, say, onClose }) {
   );
 }
 function TransferForm({ mode, acc, transfers, settings, say, onDone, sendable }) {
+  const [site, setSite] = useSite();
   const [amount, setAmount] = useState(sendable ? String(sendable) : "");
   const [at, setAt] = useState(toLocalInput(Date.now()));
   const [buyer, setBuyer] = useState("");
@@ -875,6 +877,7 @@ function TransferForm({ mode, acc, transfers, settings, say, onDone, sendable })
         amount: amt,
         buyer: buyer.trim() || null,
         kind: mode,
+        site: site || null,
         sent_at: new Date(t).toISOString(),
       });
     setBusy(false);
@@ -956,6 +959,7 @@ function TransferForm({ mode, acc, transfers, settings, say, onDone, sendable })
           },
         }),
       ),
+      React.createElement(SitePicker, { value: site, onChange: setSite }),
     ),
     warn && React.createElement("div", { className: "msg " + warn.cls }, warn.text),
     React.createElement(
@@ -1033,6 +1037,7 @@ function Journal({ mode, accounts, transfers, now, say, q, setQ }) {
                 null,
                 React.createElement("th", null, "Когда"),
                 React.createElement("th", null, "Аккаунт"),
+                React.createElement("th", null, "Площадка"),
                 React.createElement("th", null, "Покупатель"),
                 React.createElement("th", { className: "n" }, "Сумма"),
                 mode === "transfer" && React.createElement("th", null, "Вернётся в суточный лимит"),
@@ -1049,6 +1054,7 @@ function Journal({ mode, accounts, transfers, now, say, q, setQ }) {
                   { key: t.id },
                   React.createElement("td", { className: "num" }, fmtDate(new Date(t.sent_at).getTime())),
                   React.createElement("td", null, name(t.account_id)),
+                  React.createElement("td", { className: "tag" }, siteLabel(t.site)),
                   React.createElement(
                     "td",
                     null,
@@ -1436,7 +1442,7 @@ function AdminView({ me, say, statId, page, backHref }) {
   const [rev, setRev] = useState(0);
   const bump = () => setRev((r) => r + 1);
   // Статистика пользователя — отдельная страница #/admin/user/<id>
-  if (statId)
+  if (statId && page === "user")
     return React.createElement(
       "div",
       { className: "view-in", key: "st-" + statId },
@@ -1484,7 +1490,7 @@ function AdminView({ me, say, statId, page, backHref }) {
       "div",
       { className: "view-in", key: page || "main" },
       page === "profit"
-        ? React.createElement(ProfitPage, { say: say })
+        ? React.createElement(ProfitPage, { say: say, site: statId })
         : React.createElement(
             React.Fragment,
             null,

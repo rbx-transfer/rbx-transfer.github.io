@@ -4,12 +4,12 @@
  * Файл собран из исходника src/main.ts*.
  */
 
-import { StrictMode, useEffect, useState } from "./vendor/react.js?v=8508abad";
-import { createRoot } from "./vendor/react-dom-client.js?v=8508abad";
-import { supabase, configured, onKick } from "./supabase.js?v=8508abad";
-import { AuthScreen, NewPasswordScreen } from "./Auth.js?v=8508abad";
-import { Dashboard } from "./Dashboard.js?v=8508abad";
-import { restoreRoute } from "./router.js?v=8508abad";
+import { StrictMode, useEffect, useState } from "./vendor/react.js?v=0208e316";
+import { createRoot } from "./vendor/react-dom-client.js?v=0208e316";
+import { supabase, configured, onKick } from "./supabase.js?v=0208e316";
+import { AuthScreen, NewPasswordScreen } from "./Auth.js?v=0208e316";
+import { Dashboard } from "./Dashboard.js?v=0208e316";
+import { restoreRoute } from "./router.js?v=0208e316";
 function App() {
   const [session, setSession] = useState(null);
   const [ready, setReady] = useState(false);

@@ -4,15 +4,17 @@
  * Файл собран из исходника src/SendPanel.ts*.
  */
 
-import { useEffect, useState } from "./vendor/react.js?v=8508abad";
-import { supabase, errText } from "./supabase.js?v=8508abad";
-import { calcAccount, fmt, dur, fmtDate, DAY } from "./calc.js?v=8508abad";
-import { AccessPanel, noFill } from "./VaultUI.js?v=8508abad";
-import { PlusBadge } from "./Plus.js?v=8508abad";
-import { Dropdown } from "./ui.js?v=8508abad";
+import { useEffect, useState } from "./vendor/react.js?v=0208e316";
+import { supabase, errText } from "./supabase.js?v=0208e316";
+import { calcAccount, fmt, dur, fmtDate, DAY } from "./calc.js?v=0208e316";
+import { SitePicker, useSite } from "./sites.js?v=0208e316";
+import { AccessPanel, noFill } from "./VaultUI.js?v=0208e316";
+import { PlusBadge } from "./Plus.js?v=0208e316";
+import { Dropdown } from "./ui.js?v=0208e316";
 const LS = "rbx-working-account";
 // ---------- Отправка: «Работаю с…» + заказ + «Отправил» ----------
 export function SendPanel({ accounts, transfers, settings, now, say, mode = "transfer" }) {
+  const [site, setSite] = useSite();
   const gp = mode === "gamepass";
   const LSK = LS + (gp ? "-gp" : "");
   const ready = accounts.filter((a) => a.status === "ready");
@@ -128,7 +130,14 @@ export function SendPanel({ accounts, transfers, settings, now, say, mode = "tra
     setBusy(true);
     const { error } = await supabase
       .from("transfers")
-      .insert({ account_id: acc.id, amount: amt, buyer: b, kind: mode, sent_at: new Date().toISOString() });
+      .insert({
+        account_id: acc.id,
+        amount: amt,
+        buyer: b,
+        kind: mode,
+        site: site || null,
+        sent_at: new Date().toISOString(),
+      });
     setBusy(false);
     if (error) {
       say(errText(error));
@@ -329,6 +338,7 @@ export function SendPanel({ accounts, transfers, settings, now, say, mode = "tra
             ),
           ),
         ),
+        React.createElement(SitePicker, { value: site, onChange: setSite }),
         React.createElement(
           "button",
           { className: "primary big", type: "submit", disabled: busy },

@@ -4,9 +4,11 @@
  * Файл собран из исходника src/Admin.ts*.
  */
 
-import { useEffect, useState } from "./vendor/react.js?v=8508abad";
-import { supabase, errText, kickBroadcast } from "./supabase.js?v=8508abad";
-import { Num, Rbx } from "./ui.js?v=8508abad";
+import { useEffect, useState } from "./vendor/react.js?v=0208e316";
+import { supabase, errText, kickBroadcast } from "./supabase.js?v=0208e316";
+import { Num, Rbx } from "./ui.js?v=0208e316";
+import { href } from "./router.js?v=0208e316";
+import { SITES, siteLabel } from "./sites.js?v=0208e316";
 const d = (x) =>
   x
     ? new Date(x).toLocaleString("ru-RU", {
@@ -810,46 +812,92 @@ const PERIODS = [
   ["month", "За месяц"],
   ["all", "За всё время"],
 ];
-const CATS = [
+const PROFIT_CATS = [
   ["gift_transfer", "Донат гифт · трансфер", "робуксов передано"],
   ["gift_gamepass", "Донат гифт · геймпасс", "робуксов продано геймпассом"],
   ["direct", "Донат напрямую (геймпасс)", "робуксов потрачено"],
-  ["ms_packs", "Донат паки (Microsoft)", "робуксов куплено наборами"],
 ];
-export function ProfitPage({ say }) {
+/** Значения по умолчанию (можно поменять на странице). */
+const DEFAULT_RATES = {
+  gift_transfer: { k: 0.81, fee: 3 },
+  gift_gamepass: { k: 0.5, fee: 3 },
+  direct: { k: 0.49, fee: 3 }, // 0,7 × 0,7
+};
+const SITE_TABS = [{ id: "", label: "Все площадки" }, ...SITES];
+const rub = (x) => Math.round(x).toLocaleString("ru-RU") + " ₽";
+const profitOf = (robux, r) => robux * r.k * (1 - r.fee / 100);
+const fmtK = (x) => String(x).replace(".", ",");
+export function ProfitPage({ say, site = "" }) {
   const [data, setData] = useState(null);
+  const [saved, setSaved] = useState({});
   const [period, setPeriod] = useState("day");
   async function load() {
-    const { data, error } = await supabase.rpc("admin_profit");
-    if (error) say(errText(error), "err");
-    else setData(data);
+    const [p, r] = await Promise.all([supabase.rpc("admin_profit"), supabase.rpc("admin_profit_settings")]);
+    if (p.error || r.error) say(errText(p.error || r.error), "err");
+    else {
+      setData(p.data);
+      setSaved(r.data || {});
+    }
   }
   useEffect(() => {
     load();
   }, []);
-  const cur = data?.[period] || {};
-  const get = (k) => ({
-    count: Number(cur[k]?.count) || 0,
-    robux: Number(cur[k]?.robux) || 0,
-    usd: Number(cur[k]?.usd) || 0,
-  });
-  const total = CATS.reduce(
-    (a, [k]) => {
-      const c = get(k);
-      return { count: a.count + c.count, robux: a.robux + c.robux, usd: a.usd + c.usd };
-    },
-    { count: 0, robux: 0, usd: 0 },
-  );
-  const max = Math.max(1, ...CATS.map(([k]) => get(k).robux));
+  /** Коэффициенты площадки (или «по умолчанию»), недостающие поля — из DEFAULT_RATES. */
+  const ratesFor = (id) => {
+    const own = saved[id || "default"] || saved["default"] || {};
+    const out = { ...DEFAULT_RATES };
+    Object.keys(out).forEach((k) => {
+      if (own[k]) out[k] = { ...out[k], ...own[k] };
+    });
+    return out;
+  };
+  /** Оборот и прибыль категории за период: по одной площадке или по всем сразу. */
+  function calc(p, cat) {
+    const per = data?.[p] || {};
+    const ids = site ? [site] : Object.keys(per);
+    let count = 0,
+      robux = 0,
+      usd = 0,
+      profit = 0;
+    for (const id of ids) {
+      const c = per[id]?.[cat];
+      if (!c) continue;
+      count += Number(c.count) || 0;
+      robux += Number(c.robux) || 0;
+      usd += Number(c.usd) || 0;
+      const rate = ratesFor(id === "none" ? "" : id)[cat];
+      if (rate) profit += profitOf(Number(c.robux) || 0, rate);
+    }
+    return { count, robux, usd, profit };
+  }
+  const cats = PROFIT_CATS.map(([k]) => ({ k, ...calc(period, k) }));
+  const ms = site ? { count: 0, robux: 0, usd: 0, profit: 0 } : calc(period, "ms_packs");
+  const total = {
+    profit: cats.reduce((a, c) => a + c.profit, 0),
+    robux: cats.reduce((a, c) => a + c.robux, 0) + ms.robux,
+    count: cats.reduce((a, c) => a + c.count, 0) + ms.count,
+  };
+  const max = Math.max(1, ...cats.map((c) => c.profit));
+  const rates = ratesFor(site);
   return React.createElement(
     "section",
     { className: "profit" },
     React.createElement(
-      "div",
-      { className: "profit-note" },
-      "Формулу прибыли зададим позже. Пока здесь ",
-      React.createElement("b", null, "оборот"),
-      " по всему сайту: сколько робуксов прошло через каждую категорию и сколько долларов потрачено на наборы Microsoft.",
+      "nav",
+      { className: "tabs", role: "tablist" },
+      SITE_TABS.map((t) =>
+        React.createElement(
+          "a",
+          {
+            key: t.id || "all",
+            role: "tab",
+            "aria-selected": site === t.id,
+            className: "tab-link" + (site === t.id ? " on" : ""),
+            href: href("admin/profit" + (t.id ? "/" + t.id : "")),
+          },
+          t.label,
+        ),
+      ),
     ),
     React.createElement(
       "nav",
@@ -874,11 +922,16 @@ export function ProfitPage({ say }) {
       ? React.createElement("div", { className: "empty" }, "Загружаю…")
       : React.createElement(
           "div",
-          { className: "view-in", key: period },
+          { className: "view-in", key: site + period },
           React.createElement(
             "div",
             { className: "st-grid stagger" },
-            React.createElement(Tile, { k: "Общая прибыль", v: "—", h: "формула будет позже", accent: true }),
+            React.createElement(Tile, {
+              k: "Прибыль · " + (site ? siteLabel(site) : "все площадки"),
+              v: rub(total.profit),
+              h: "сумма по категориям",
+              accent: true,
+            }),
             React.createElement(Tile, {
               k: "Оборот",
               v: React.createElement(
@@ -888,21 +941,32 @@ export function ProfitPage({ say }) {
                 " ",
                 React.createElement(Rbx, null),
               ),
-              h: "все категории вместе",
+              h: "робуксов прошло",
             }),
             React.createElement(Tile, {
               k: "Сделок",
               v: React.createElement(Num, { value: total.count, fmt: n0 }),
-              h: "переводы, продажи, траты, заказы",
+              h: "переводы, продажи, траты",
             }),
-            React.createElement(Tile, { k: "Расход Microsoft", v: usd(total.usd), h: "потрачено на наборы" }),
+            site
+              ? React.createElement(Tile, {
+                  k: "Комиссия площадки",
+                  v: `${fmtK(rates.gift_transfer.fee)}%`,
+                  h: "у каждой категории своя, ниже",
+                })
+              : React.createElement(Tile, {
+                  k: "Расход Microsoft",
+                  v: usd(ms.usd),
+                  h: `наборы: ${n0(ms.robux)} R$`,
+                }),
           ),
           React.createElement(
             "div",
             { className: "cat-grid stagger" },
-            CATS.map(([k, name, what]) => {
-              const c = get(k);
-              const share = total.robux ? Math.round((c.robux / total.robux) * 100) : 0;
+            PROFIT_CATS.map(([k, name, what]) => {
+              const c = cats.find((x) => x.k === k);
+              const share = total.profit ? Math.round((c.profit / total.profit) * 100) : 0;
+              const r = rates[k];
               return React.createElement(
                 "article",
                 { key: k, className: "cat-card" },
@@ -910,48 +974,59 @@ export function ProfitPage({ say }) {
                   "div",
                   { className: "cat-h" },
                   React.createElement("b", null, name),
-                  React.createElement("span", { className: "tag" }, share, "% оборота"),
+                  React.createElement("span", { className: "tag" }, share, "% прибыли"),
+                ),
+                React.createElement("div", { className: "cat-v num accent" }, rub(c.profit)),
+                React.createElement(
+                  "div",
+                  { className: "tag" },
+                  n0(c.robux),
+                  " ",
+                  what,
+                  " · сделок ",
+                  n0(c.count),
+                ),
+                React.createElement(
+                  "div",
+                  { className: "cat-bar" },
+                  React.createElement("i", { style: { width: (c.profit / max) * 100 + "%" } }),
+                ),
+                React.createElement(
+                  "div",
+                  { className: "cat-row" },
+                  React.createElement("span", null, "формула: N × ", fmtK(r.k), " − ", fmtK(r.fee), "%"),
+                ),
+              );
+            }),
+            !site &&
+              React.createElement(
+                "article",
+                { className: "cat-card muted-card" },
+                React.createElement(
+                  "div",
+                  { className: "cat-h" },
+                  React.createElement("b", null, "Донат паки (Microsoft)"),
+                  React.createElement("span", { className: "tag" }, "пока без прибыли"),
                 ),
                 React.createElement(
                   "div",
                   { className: "cat-v num" },
-                  React.createElement(Num, { value: c.robux, fmt: n0 }),
+                  React.createElement(Num, { value: ms.robux, fmt: n0 }),
                   " ",
                   React.createElement(Rbx, null),
                 ),
-                React.createElement("div", { className: "tag" }, what),
-                React.createElement(
-                  "div",
-                  { className: "cat-bar" },
-                  React.createElement("i", { style: { width: (c.robux / max) * 100 + "%" } }),
-                ),
+                React.createElement("div", { className: "tag" }, "куплено наборами · заказов ", n0(ms.count)),
                 React.createElement(
                   "div",
                   { className: "cat-row" },
                   React.createElement(
                     "span",
                     null,
-                    "сделок ",
-                    React.createElement("b", { className: "num" }, n0(c.count)),
+                    "расход ",
+                    React.createElement("b", { className: "num" }, usd(ms.usd)),
                   ),
-                  k === "ms_packs" &&
-                    React.createElement(
-                      "span",
-                      null,
-                      "расход ",
-                      React.createElement("b", { className: "num" }, usd(c.usd)),
-                    ),
-                  k === "direct" &&
-                    React.createElement(
-                      "span",
-                      null,
-                      "геймпассов на ",
-                      React.createElement("b", { className: "num" }, n0(Math.floor(c.robux * 0.7))),
-                    ),
-                  React.createElement("span", null, "прибыль ", React.createElement("b", null, "—")),
                 ),
-              );
-            }),
+              ),
           ),
           React.createElement(
             "div",
@@ -959,8 +1034,8 @@ export function ProfitPage({ say }) {
             React.createElement(
               "div",
               { className: "ms-card-h" },
-              React.createElement("h2", null, "Все периоды"),
-              React.createElement("span", { className: "tag" }, "оборот, R$"),
+              React.createElement("h2", null, "Прибыль по периодам"),
+              React.createElement("span", { className: "tag" }, site ? siteLabel(site) : "все площадки"),
             ),
             React.createElement(
               "div",
@@ -983,17 +1058,13 @@ export function ProfitPage({ say }) {
                 React.createElement(
                   "tbody",
                   null,
-                  CATS.map(([k, name]) =>
+                  PROFIT_CATS.map(([k, name]) =>
                     React.createElement(
                       "tr",
                       { key: k },
                       React.createElement("td", null, name),
                       PERIODS.map(([p]) =>
-                        React.createElement(
-                          "td",
-                          { key: p, className: "n num" },
-                          n0(Number(data[p]?.[k]?.robux) || 0),
-                        ),
+                        React.createElement("td", { key: p, className: "n num" }, rub(calc(p, k).profit)),
                       ),
                     ),
                   ),
@@ -1008,7 +1079,7 @@ export function ProfitPage({ say }) {
                         React.createElement(
                           "b",
                           null,
-                          n0(CATS.reduce((a, [k]) => a + (Number(data[p]?.[k]?.robux) || 0), 0)),
+                          rub(PROFIT_CATS.reduce((a, [k]) => a + calc(p, k).profit, 0)),
                         ),
                       ),
                     ),
@@ -1017,6 +1088,103 @@ export function ProfitPage({ say }) {
               ),
             ),
           ),
+          React.createElement(RatesEditor, {
+            key: site || "default",
+            site: site,
+            rates: rates,
+            say: say,
+            onSaved: load,
+          }),
         ),
+  );
+}
+/** Редактор коэффициентов и комиссии для площадки (на вкладке «Все» — значения по умолчанию). */
+function RatesEditor({ site, rates, say, onSaved }) {
+  const [draft, setDraft] = useState(() =>
+    Object.fromEntries(PROFIT_CATS.map(([k]) => [k, { k: fmtK(rates[k].k), fee: fmtK(rates[k].fee) }])),
+  );
+  const [busy, setBusy] = useState(false);
+  const num = (x) => Number(x.replace(",", "."));
+  async function save() {
+    const out = {};
+    for (const [k, name] of PROFIT_CATS) {
+      const kk = num(draft[k].k),
+        fee = num(draft[k].fee);
+      if (!(kk >= 0) || !(fee >= 0 && fee < 100)) {
+        say(`Проверь значения в «${name}»`, "err");
+        return;
+      }
+      out[k] = { k: kk, fee };
+    }
+    setBusy(true);
+    const { error } = await supabase.rpc("admin_set_profit_settings", {
+      p_site: site || "default",
+      p_rates: out,
+    });
+    setBusy(false);
+    if (error) say(errText(error), "err");
+    else {
+      say("Формула сохранена");
+      onSaved();
+    }
+  }
+  return React.createElement(
+    "div",
+    { className: "card ms-card rates" },
+    React.createElement(
+      "div",
+      { className: "ms-card-h" },
+      React.createElement("h2", null, "Формула прибыли"),
+      React.createElement(
+        "span",
+        { className: "tag" },
+        site ? `только для ${siteLabel(site)}` : "по умолчанию — для продаж без площадки",
+      ),
+    ),
+    React.createElement(
+      "div",
+      { className: "rates-grid" },
+      PROFIT_CATS.map(([k, name]) =>
+        React.createElement(
+          "div",
+          { key: k, className: "rate-row" },
+          React.createElement("b", null, name),
+          React.createElement(
+            "label",
+            null,
+            "Коэффициент",
+            React.createElement("input", {
+              inputMode: "decimal",
+              value: draft[k].k,
+              onChange: (e) => setDraft({ ...draft, [k]: { ...draft[k], k: e.target.value } }),
+            }),
+          ),
+          React.createElement(
+            "label",
+            null,
+            "Комиссия, %",
+            React.createElement("input", {
+              inputMode: "decimal",
+              value: draft[k].fee,
+              onChange: (e) => setDraft({ ...draft, [k]: { ...draft[k], fee: e.target.value } }),
+            }),
+          ),
+        ),
+      ),
+    ),
+    React.createElement(
+      "div",
+      { className: "rates-foot" },
+      React.createElement(
+        "span",
+        { className: "tag" },
+        "Прибыль = робуксы × коэффициент − комиссия. Пример: 1 000 × 0,81 − 3% = 786 ₽.",
+      ),
+      React.createElement(
+        "button",
+        { className: "primary", disabled: busy, onClick: save },
+        busy ? "Сохраняю…" : "Сохранить",
+      ),
+    ),
   );
 }

@@ -12,7 +12,7 @@
 // Поэтому работают кнопка «Назад» браузера, обновление страницы
 // и открытие любой вкладки сайта в новой вкладке браузера (СКМ / Ctrl+клик).
 // =====================================================================
-import { useEffect, useState } from "./vendor/react.js?v=8508abad";
+import { useEffect, useState } from "./vendor/react.js?v=0208e316";
 const LAST = "rbx-last-route";
 /** Текущий путь без «#/», например "gift/transfer/send". */
 function readPath() {

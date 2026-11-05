@@ -4044,3 +4044,63 @@ a.btn:hover {
     width: auto;
   }
 }
+
+/* ===== Площадка в формах и формула прибыли ===== */
+.site-pick {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.tx-grid {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+.send-fields .site-pick {
+  min-width: 170px;
+}
+.muted-card {
+  opacity: 0.75;
+}
+.rates-grid {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+}
+.rate-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px 14px;
+  align-items: end;
+}
+.rate-row b {
+  align-self: center;
+  font-size: 14px;
+}
+.rate-row label {
+  display: grid;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.rate-row input {
+  height: 40px;
+  font-family: var(--f-mono);
+}
+.rates-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-top: 1px solid var(--line);
+}
+@media (max-width: 640px) {
+  .rate-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .rate-row b {
+    grid-column: 1/-1;
+  }
+}

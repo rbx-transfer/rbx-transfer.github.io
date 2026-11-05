@@ -4,9 +4,9 @@
  * Файл собран из исходника src/useTeamData.ts*.
  */
 
-import { useCallback, useEffect, useRef, useState } from "./vendor/react.js?v=8508abad";
-import { supabase } from "./supabase.js?v=8508abad";
-import { DEFAULT_SETTINGS } from "./calc.js?v=8508abad";
+import { useCallback, useEffect, useRef, useState } from "./vendor/react.js?v=0208e316";
+import { supabase } from "./supabase.js?v=0208e316";
+import { DEFAULT_SETTINGS } from "./calc.js?v=0208e316";
 async function fetchAllTransfers() {
   const out = [];
   const page = 1000;
