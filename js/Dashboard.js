@@ -11,6 +11,7 @@ import { useTeamData } from "./useTeamData.js";
 import { SendPanel, Buyers } from "./SendPanel.js";
 import { PlusField, PlusBadge } from "./Plus.js";
 import { MsPanel } from "./MsPanel.js";
+import { DirectPanel } from "./DirectPanel.js";
 import { InviteCodes, Blacklist, UserStats } from "./Admin.js";
 import { Num, Rbx, ToastView } from "./ui.js";
 import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js";
@@ -52,7 +53,7 @@ function DashboardInner({ email, userId }) {
   };
   const [section, setSectionS] = useState(() => {
     const v = ls("rbx-section", "gift");
-    return v === "packs" ? "packs" : "gift";
+    return v === "packs" || v === "direct" ? v : "gift";
   });
   const [mode, setModeS] = useState(() => ls("rbx-gift-mode", "transfer"));
   const setSection = (v) => {
@@ -121,6 +122,7 @@ function DashboardInner({ email, userId }) {
             [
               ["packs", "Донат паки (Microsoft)"],
               ["gift", "Донат гифт"],
+              ["direct", "Донат напрямую (геймпасс)"],
             ].map(([k, t]) =>
               React.createElement(
                 "button",
@@ -140,6 +142,12 @@ function DashboardInner({ email, userId }) {
               "div",
               { className: "view-in", key: "packs" },
               React.createElement(MsPanel, { say: say }),
+            ),
+          section === "direct" &&
+            React.createElement(
+              "div",
+              { className: "view-in", key: "direct" },
+              React.createElement(DirectPanel, { say: say }),
             ),
           section === "gift" &&
             React.createElement(
@@ -322,11 +330,7 @@ function Shell({ email, clock, children, isAdmin, admin, onAdmin }) {
           isAdmin &&
             React.createElement(
               "button",
-              {
-                className: "admin-btn" + (admin ? " on" : ""),
-                onClick: onAdmin,
-                title: "Админка",
-              },
+              { className: "admin-btn" + (admin ? " on" : ""), onClick: onAdmin, title: "Админка" },
               React.createElement(
                 "svg",
                 { width: "15", height: "15", viewBox: "0 0 24 24", "aria-hidden": "true" },
@@ -484,14 +488,16 @@ function AddAccount({ onClose, say, nextOrder, inline }) {
       setErr(sealed.error);
       return;
     }
-    const { error } = await supabase.from("accounts").insert({
-      name: name.trim(),
-      base_balance: Number(balance) || 0,
-      plus_since: plus,
-      sort_order: nextOrder,
-      status: "ready",
-      ...sealed,
-    });
+    const { error } = await supabase
+      .from("accounts")
+      .insert({
+        name: name.trim(),
+        base_balance: Number(balance) || 0,
+        plus_since: plus,
+        sort_order: nextOrder,
+        status: "ready",
+        ...sealed,
+      });
     setBusy(false);
     if (error) setErr(errText(error));
     else {
@@ -841,6 +847,10 @@ function TransferForm({ mode, acc, transfers, settings, say, onDone, sendable })
       return;
     }
     const r = calcAccount(acc, transfers, settings, Math.max(t, Date.now()));
+    if (mode === "transfer" && !r.plus) {
+      say(`Нельзя записать трансфер: на ${acc.name} нет активной подписки Roblox Plus`, "err");
+      return;
+    }
     if (amt > r.balance) {
       say(`Недостаточно робуксов: на ${acc.name} ${fmt(r.balance)}, нужно ${fmt(amt)}`, "err");
       return;
@@ -854,13 +864,15 @@ function TransferForm({ mode, acc, transfers, settings, say, onDone, sendable })
       return;
     }
     setBusy(true);
-    const { error } = await supabase.from("transfers").insert({
-      account_id: acc.id,
-      amount: amt,
-      buyer: buyer.trim() || null,
-      kind: mode,
-      sent_at: new Date(t).toISOString(),
-    });
+    const { error } = await supabase
+      .from("transfers")
+      .insert({
+        account_id: acc.id,
+        amount: amt,
+        buyer: buyer.trim() || null,
+        kind: mode,
+        sent_at: new Date(t).toISOString(),
+      });
     setBusy(false);
     if (error) say(errText(error));
     else {
@@ -1094,12 +1106,14 @@ function SettingsForm({ settings, userId, say }) {
   useEffect(() => setS(settings), [settings]);
   async function save(e) {
     e.preventDefault();
-    const { error } = await supabase.from("user_settings").upsert({
-      user_id: userId,
-      daily_limit: Math.round(s.daily_limit),
-      monthly_limit: Math.round(s.monthly_limit),
-      month_mode: s.month_mode,
-    });
+    const { error } = await supabase
+      .from("user_settings")
+      .upsert({
+        user_id: userId,
+        daily_limit: Math.round(s.daily_limit),
+        monthly_limit: Math.round(s.monthly_limit),
+        month_mode: s.month_mode,
+      });
     if (error) say(errText(error));
     else say("Настройки сохранены");
   }

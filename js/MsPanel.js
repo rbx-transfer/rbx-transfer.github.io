@@ -227,12 +227,7 @@ export function MsPanel({ say }) {
       !drawer &&
       React.createElement(
         "button",
-        {
-          key: bump,
-          className: "cart-fab",
-          onClick: () => setDrawer(true),
-          "aria-label": "Открыть корзину",
-        },
+        { key: bump, className: "cart-fab", onClick: () => setDrawer(true), "aria-label": "Открыть корзину" },
         React.createElement(
           "svg",
           { width: "20", height: "20", viewBox: "0 0 24 24", "aria-hidden": "true" },
@@ -354,25 +349,12 @@ function CartDrawer({ items, acc, accOpts, setAccId, add, dec, onClear, onClose,
     },
     React.createElement(
       "aside",
-      {
-        className: "drawer",
-        role: "dialog",
-        "aria-modal": "true",
-        "aria-label": "Корзина",
-      },
+      { className: "drawer", role: "dialog", "aria-modal": "true", "aria-label": "Корзина" },
       React.createElement(
         "div",
         { className: "drawer-h" },
         React.createElement("h2", null, "Корзина"),
-        React.createElement(
-          "button",
-          {
-            className: "ghost",
-            onClick: onClose,
-            "aria-label": "Закрыть",
-          },
-          "✕",
-        ),
+        React.createElement("button", { className: "ghost", onClick: onClose, "aria-label": "Закрыть" }, "✕"),
       ),
       !items.length
         ? React.createElement("div", { className: "empty" }, "Корзина пуста. Добавь наборы плюсом.")
@@ -397,21 +379,13 @@ function CartDrawer({ items, acc, accOpts, setAccId, add, dec, onClear, onClose,
                     { className: "ms-qty" },
                     React.createElement(
                       "button",
-                      {
-                        className: "mini-btn",
-                        onClick: () => dec(i.r),
-                        "aria-label": "Убрать один",
-                      },
+                      { className: "mini-btn", onClick: () => dec(i.r), "aria-label": "Убрать один" },
                       "−",
                     ),
                     React.createElement("b", { className: "num" }, i.q),
                     React.createElement(
                       "button",
-                      {
-                        className: "mini-btn",
-                        onClick: () => add(i.r),
-                        "aria-label": "Добавить один",
-                      },
+                      { className: "mini-btn", onClick: () => add(i.r), "aria-label": "Добавить один" },
                       "+",
                     ),
                   ),
@@ -1459,11 +1433,7 @@ function MsAccCard({ a, cur, onCur, reload, say }) {
       React.createElement("span", { className: "msa-email mono", title: a.email }, a.email),
       React.createElement(
         "button",
-        {
-          className: "icon-btn",
-          onClick: () => copy(a.email, "Почта"),
-          "aria-label": "Скопировать почту",
-        },
+        { className: "icon-btn", onClick: () => copy(a.email, "Почта"), "aria-label": "Скопировать почту" },
         "⧉",
       ),
     ),
@@ -1485,11 +1455,7 @@ function MsAccCard({ a, cur, onCur, reload, say }) {
           null,
           React.createElement(
             "button",
-            {
-              className: "icon-btn",
-              onClick: () => setShow(!show),
-              "aria-label": "Показать пароль",
-            },
+            { className: "icon-btn", onClick: () => setShow(!show), "aria-label": "Показать пароль" },
             show ? "◡" : "◉",
           ),
           React.createElement(
@@ -1663,12 +1629,7 @@ function AddMsAcc({ onClose, onDone, say }) {
         ),
         React.createElement(
           "button",
-          {
-            type: "button",
-            className: "ghost close-x",
-            onClick: onClose,
-            "aria-label": "Закрыть",
-          },
+          { type: "button", className: "ghost close-x", onClick: onClose, "aria-label": "Закрыть" },
           "✕",
         ),
       ),

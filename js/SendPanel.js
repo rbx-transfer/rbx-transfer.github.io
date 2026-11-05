@@ -62,7 +62,12 @@ export function SendPanel({ accounts, transfers, settings, now, say, mode = "tra
     .filter((x) => x.r.sendable > 0)
     .sort((x, y) => y.r.sendable - x.r.sendable);
   let warn = null;
-  if (r && amt > 0) {
+  if (r && !gp && !r.plus)
+    warn = {
+      cls: "bad",
+      text: "Нет активной подписки Roblox Plus — трансфер с этого аккаунта записать нельзя. Отметь Plus в «Аккаунтах».",
+    };
+  else if (r && amt > 0) {
     if (amt > r.balance) warn = { cls: "bad", text: `На аккаунте только ${fmt(r.balance)}.` };
     else if (gp) {
       /* у геймпасса лимитов нет */
@@ -105,6 +110,10 @@ export function SendPanel({ accounts, transfers, settings, now, say, mode = "tra
     }
     if (!(amt > 0)) {
       say("Укажи сумму");
+      return;
+    }
+    if (mode === "transfer" && !r.plus) {
+      say(`Нельзя записать трансфер: на ${acc.name} нет активной подписки Roblox Plus`, "err");
       return;
     }
     if (amt > r.balance) {

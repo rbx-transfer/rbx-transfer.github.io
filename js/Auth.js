@@ -90,12 +90,7 @@ export function AuthScreen({ notice, onNotice } = {}) {
           " ",
           React.createElement(
             "button",
-            {
-              type: "button",
-              className: "ghost",
-              onClick: onNotice,
-              "aria-label": "Закрыть",
-            },
+            { type: "button", className: "ghost", onClick: onNotice, "aria-label": "Закрыть" },
             "×",
           ),
         ),

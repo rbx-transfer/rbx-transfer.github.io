@@ -112,12 +112,7 @@ export function InviteCodes({ say }) {
       fresh &&
         React.createElement(
           "button",
-          {
-            type: "button",
-            className: "inv-fresh",
-            onClick: () => copy(fresh),
-            title: "Скопировать",
-          },
+          { type: "button", className: "inv-fresh", onClick: () => copy(fresh), title: "Скопировать" },
           React.createElement("span", null, "новый код"),
           React.createElement("b", null, fresh),
         ),
@@ -194,11 +189,7 @@ export function InviteCodes({ say }) {
                       null,
                       React.createElement(
                         "button",
-                        {
-                          className: "code-chip",
-                          onClick: () => copy(c.code),
-                          title: "Скопировать",
-                        },
+                        { className: "code-chip", onClick: () => copy(c.code), title: "Скопировать" },
                         c.code,
                       ),
                     ),

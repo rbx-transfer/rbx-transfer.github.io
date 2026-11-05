@@ -43,11 +43,15 @@ export function calcAccount(acc, transfers, s, now, mode = "transfer") {
   }
   const monSent = monTx.reduce((sum, t) => sum + t.amount, 0);
   const monLeft = Math.max(0, s.monthly_limit - monSent);
-  const sendable = mode === "gamepass" ? balance : Math.max(0, Math.min(balance, dayLeft, monLeft));
+  // Трансфер возможен только с активной подпиской Roblox Plus
+  const until = plusUntil(acc.plus_since);
+  const plus = until !== null && until > now;
+  const sendable =
+    mode === "gamepass" ? balance : plus ? Math.max(0, Math.min(balance, dayLeft, monLeft)) : 0;
   let status;
   if (balance <= 0) status = { cls: "idle", text: "пусто" };
   else if (mode === "gamepass") status = { cls: "ok", text: "можно продавать" };
-  else if (balance <= 0) status = { cls: "idle", text: "пусто" };
+  else if (!plus) status = { cls: "bad", text: "нет Plus" };
   else if (monLeft <= 0) status = { cls: "bad", text: "месячный лимит" };
   else if (dayLeft <= 0) status = { cls: "warn", text: "суточный лимит" };
   else status = { cls: "ok", text: "можно отправлять" };
@@ -63,6 +67,7 @@ export function calcAccount(acc, transfers, s, now, mode = "transfer") {
     monthReset,
     sendable,
     status,
+    plus,
   };
 }
 export const fmt = (n) => Math.round(n).toLocaleString("ru-RU");

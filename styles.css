@@ -3514,3 +3514,145 @@ input[type="number"]::-webkit-inner-spin-button {
 .ms {
   padding-bottom: 96px;
 }
+
+/* ===== Донат напрямую (геймпасс): прогрев и баланс ===== */
+.direct {
+  display: grid;
+  gap: 14px;
+}
+.direct-sum {
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+}
+@media (max-width: 760px) {
+  .direct-sum {
+    grid-template-columns: 1fr;
+  }
+}
+.direct-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+}
+@media (max-width: 700px) {
+  .direct-row {
+    grid-template-columns: 1fr;
+  }
+}
+.warm-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-2);
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+.warm-box.on {
+  border-color: color-mix(in srgb, var(--warn) 55%, var(--line));
+  background: linear-gradient(135deg, var(--warn-soft), transparent 70%), var(--bg-2);
+}
+.warm-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--fg);
+  font-weight: 600;
+  font-size: 14px;
+}
+.warm-toggle .sw {
+  flex: none;
+  width: 40px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--line-2);
+  position: relative;
+  transition: background 0.15s;
+}
+.warm-toggle .sw i {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--fg);
+  transition: transform 0.15s;
+}
+.warm-box.on .warm-toggle .sw {
+  background: var(--warn);
+}
+.warm-box.on .warm-toggle .sw i {
+  transform: translateX(18px);
+  background: #1d1403;
+}
+.warm-time {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+}
+.warm-time .k {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+}
+.warm-time b {
+  font-family: var(--f-mono);
+  font-size: 17px;
+  font-weight: 700;
+}
+.warm-box.on .warm-time b {
+  color: var(--warn);
+}
+.direct-bal {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-2);
+}
+.direct-bal > div {
+  display: grid;
+  gap: 2px;
+}
+.direct-bal .k {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--muted);
+}
+.direct-bal .v {
+  font-family: var(--f-mono);
+  font-size: 20px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.direct-bal .edit-btn {
+  margin-left: auto;
+}
+.direct-acc.warming {
+  border-color: color-mix(in srgb, var(--warn) 35%, var(--line));
+}
+.spend-calc {
+  font-size: 13.5px;
+  color: var(--muted);
+}
+.spend-calc b {
+  color: var(--accent);
+  font-size: 16px;
+}
