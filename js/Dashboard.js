@@ -4,17 +4,17 @@
  * Файл собран из исходника src/Dashboard.ts*.
  */
 
-import { useEffect, useRef, useState } from "./vendor/react.js";
-import { supabase, errText, kickBroadcast } from "./supabase.js";
-import { kindOf, calcAccount, fmt, fmtDate, dur, toLocalInput, DAY } from "./calc.js";
-import { useTeamData } from "./useTeamData.js";
-import { SendPanel, Buyers } from "./SendPanel.js";
-import { PlusField, PlusBadge } from "./Plus.js";
-import { MsPanel } from "./MsPanel.js";
-import { DirectPanel } from "./DirectPanel.js";
-import { InviteCodes, Blacklist, UserStats } from "./Admin.js";
-import { Num, Rbx, ToastView } from "./ui.js";
-import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js";
+import { useEffect, useRef, useState } from "./vendor/react.js?v=3ace7ab5";
+import { supabase, errText, kickBroadcast } from "./supabase.js?v=3ace7ab5";
+import { kindOf, calcAccount, fmt, fmtDate, dur, toLocalInput, DAY } from "./calc.js?v=3ace7ab5";
+import { useTeamData } from "./useTeamData.js?v=3ace7ab5";
+import { SendPanel, Buyers } from "./SendPanel.js?v=3ace7ab5";
+import { PlusField, PlusBadge } from "./Plus.js?v=3ace7ab5";
+import { MsPanel } from "./MsPanel.js?v=3ace7ab5";
+import { DirectPanel } from "./DirectPanel.js?v=3ace7ab5";
+import { InviteCodes, Blacklist, UserStats } from "./Admin.js?v=3ace7ab5";
+import { Num, Rbx, ToastView } from "./ui.js?v=3ace7ab5";
+import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js?v=3ace7ab5";
 function ls(k, d) {
   try {
     return localStorage.getItem(k) || d;
@@ -535,7 +535,13 @@ function AddAccount({ onClose, say, nextOrder, inline }) {
           onChange: (e) => setName(e.target.value),
         }),
       ),
-      React.createElement(SecretFields, { id: "new-acc", value: sec, onChange: setSec, required: true }),
+      React.createElement(SecretFields, {
+        id: "new-acc",
+        value: sec,
+        onChange: setSec,
+        required: true,
+        login: name,
+      }),
       React.createElement(
         "label",
         { className: "aa-bal" },

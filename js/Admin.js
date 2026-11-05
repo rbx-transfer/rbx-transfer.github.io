@@ -4,9 +4,9 @@
  * Файл собран из исходника src/Admin.ts*.
  */
 
-import { useEffect, useState } from "./vendor/react.js";
-import { supabase, errText, kickBroadcast } from "./supabase.js";
-import { Num, Rbx } from "./ui.js";
+import { useEffect, useState } from "./vendor/react.js?v=3ace7ab5";
+import { supabase, errText, kickBroadcast } from "./supabase.js?v=3ace7ab5";
+import { Num, Rbx } from "./ui.js?v=3ace7ab5";
 const d = (x) =>
   x
     ? new Date(x).toLocaleString("ru-RU", {

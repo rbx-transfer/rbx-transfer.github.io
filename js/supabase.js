@@ -4,7 +4,7 @@
  * Файл собран из исходника src/supabase.ts*.
  */
 
-import { createClient } from "./vendor/supabase.js";
+import { createClient } from "./vendor/supabase.js?v=3ace7ab5";
 const url = window.RBX_CONFIG?.SUPABASE_URL || import.meta.env?.VITE_SUPABASE_URL;
 const key = window.RBX_CONFIG?.SUPABASE_ANON_KEY || import.meta.env?.VITE_SUPABASE_ANON_KEY;
 export const configured = Boolean(url && key);

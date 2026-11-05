@@ -4,9 +4,9 @@
  * Файл собран из исходника src/VaultUI.ts*.
  */
 
-import { useEffect, useState } from "./vendor/react.js";
-import { supabase, errText } from "./supabase.js";
-import { totp, verifyTotp, base32ToBytes, cleanSecret } from "./vault.js";
+import { useEffect, useRef, useState } from "./vendor/react.js?v=3ace7ab5";
+import { supabase, errText } from "./supabase.js?v=3ace7ab5";
+import { totp, verifyTotp, base32ToBytes, cleanSecret } from "./vault.js?v=3ace7ab5";
 // Отключает автозаполнение браузера и менеджеров паролей (Chrome, Edge, Яндекс, LastPass, 1Password, Bitwarden).
 // Поле пароля намеренно type="text": к type="password" браузер всегда предлагает сохранённые пароли.
 export const noFill = (name) => ({
@@ -21,8 +21,51 @@ export const noFill = (name) => ({
   "data-form-type": "other",
 });
 export const emptySecret = { password: "", secret: "", code: "" };
-export function SecretFields({ id, value, onChange, required }) {
+/**
+ * Поля пароля и 2FA.
+ * Если передан `login`, сайт ищет этот аккаунт в общей базе (таблица roblox_vault):
+ *  • аккаунт уже был — ключ 2FA берётся из базы, нужен только текущий код;
+ *  • аккаунт новый — нужно ввести ключ 2FA и текущий код.
+ * База сохраняется даже после удаления аккаунта из любого раздела.
+ */
+export function SecretFields({ id, value, onChange, required, login }) {
   const [show, setShow] = useState(false);
+  const [known, setKnown] = useState(false);
+  const latest = useRef(value);
+  latest.current = value;
+  // Поиск аккаунта в базе по логину (с небольшой паузой, пока логин печатается)
+  useEffect(() => {
+    if (login === undefined) return;
+    const name = login.trim().toLowerCase();
+    if (!name) {
+      if (known) {
+        setKnown(false);
+        onChange({ ...latest.current, secret: "" });
+      }
+      return;
+    }
+    let stop = false;
+    const t = window.setTimeout(async () => {
+      const { data } = await supabase
+        .from("roblox_vault")
+        .select("totp_secret")
+        .eq("name_lc", name)
+        .maybeSingle();
+      if (stop) return;
+      const found = data?.totp_secret;
+      if (found) {
+        setKnown(true);
+        onChange({ ...latest.current, secret: found });
+      } else if (known) {
+        setKnown(false);
+        onChange({ ...latest.current, secret: "" });
+      }
+    }, 400);
+    return () => {
+      stop = true;
+      window.clearTimeout(t);
+    };
+  }, [login]);
   const bad = value.secret && !base32ToBytes(value.secret);
   return React.createElement(
     React.Fragment,
@@ -87,20 +130,31 @@ export function SecretFields({ id, value, onChange, required }) {
         ),
       ),
     ),
-    React.createElement(
-      "label",
-      { className: "sf-key" },
-      "Ключ 2FA",
-      React.createElement("input", {
-        id: id + "-2fa",
-        ...noFill("key"),
-        required: required,
-        placeholder: "JBSWY3DPEHPK3PXP",
-        value: value.secret,
-        onChange: (e) => onChange({ ...value, secret: e.target.value }),
-        className: bad ? "invalid" : "",
-      }),
-    ),
+    known
+      ? React.createElement(
+          "div",
+          { className: "sf-key sf-known" },
+          React.createElement("span", { className: "cap" }, "Ключ 2FA"),
+          React.createElement(
+            "span",
+            { className: "known-note" },
+            "✓ аккаунт уже есть в базе — ключ сохранён, введи только текущий код",
+          ),
+        )
+      : React.createElement(
+          "label",
+          { className: "sf-key" },
+          "Ключ 2FA",
+          React.createElement("input", {
+            id: id + "-2fa",
+            ...noFill("key"),
+            required: required,
+            placeholder: "JBSWY3DPEHPK3PXP",
+            value: value.secret,
+            onChange: (e) => onChange({ ...value, secret: e.target.value }),
+            className: bad ? "invalid" : "",
+          }),
+        ),
     React.createElement(
       "label",
       { className: "sf-code" },

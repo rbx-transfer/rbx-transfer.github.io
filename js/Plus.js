@@ -4,7 +4,7 @@
  * Файл собран из исходника src/Plus.ts*.
  */
 
-import { DAY, dur, plusUntil } from "./calc.js";
+import { DAY, dur, plusUntil } from "./calc.js?v=3ace7ab5";
 // ---------- Roblox Plus ----------
 function dayInput(iso) {
   const d = new Date(iso);

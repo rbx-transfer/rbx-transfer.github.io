@@ -4,11 +4,11 @@
  * Файл собран из исходника src/main.ts*.
  */
 
-import { StrictMode, useEffect, useState } from "./vendor/react.js";
-import { createRoot } from "./vendor/react-dom-client.js";
-import { supabase, configured, onKick } from "./supabase.js";
-import { AuthScreen, NewPasswordScreen } from "./Auth.js";
-import { Dashboard } from "./Dashboard.js";
+import { StrictMode, useEffect, useState } from "./vendor/react.js?v=3ace7ab5";
+import { createRoot } from "./vendor/react-dom-client.js?v=3ace7ab5";
+import { supabase, configured, onKick } from "./supabase.js?v=3ace7ab5";
+import { AuthScreen, NewPasswordScreen } from "./Auth.js?v=3ace7ab5";
+import { Dashboard } from "./Dashboard.js?v=3ace7ab5";
 function App() {
   const [session, setSession] = useState(null);
   const [ready, setReady] = useState(false);

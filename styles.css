@@ -3656,3 +3656,25 @@ input[type="number"]::-webkit-inner-spin-button {
   color: var(--accent);
   font-size: 16px;
 }
+
+/* ===== 2FA: аккаунт уже есть в базе ===== */
+.sf-known {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.sf-known .known-note {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, var(--ok) 45%, var(--line));
+  background: var(--ok-soft);
+  color: var(--ok);
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1.3;
+}

@@ -14,11 +14,11 @@
 //   • логин, пароль и код 2FA, как в других разделах;
 //   • журнал трат: «потрачено робуксов» и «куплено геймпассов на» (× 0,7).
 // =====================================================================
-import { useCallback, useEffect, useState } from "./vendor/react.js";
-import { supabase, errText } from "./supabase.js";
-import { fmt } from "./calc.js";
-import { Num, Rbx } from "./ui.js";
-import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js";
+import { useCallback, useEffect, useState } from "./vendor/react.js?v=3ace7ab5";
+import { supabase, errText } from "./supabase.js?v=3ace7ab5";
+import { fmt } from "./calc.js?v=3ace7ab5";
+import { Num, Rbx } from "./ui.js?v=3ace7ab5";
+import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js?v=3ace7ab5";
 /** Доля баланса, которая реально доходит до продажи через геймпасс. */
 export const DIRECT_RATE = 0.7;
 // ---------- Расчёты ----------
@@ -635,7 +635,13 @@ function AddDirect({ onClose, data, say }) {
           onChange: (e) => setName(e.target.value),
         }),
       ),
-      React.createElement(SecretFields, { id: "new-direct", value: sec, onChange: setSec, required: true }),
+      React.createElement(SecretFields, {
+        id: "new-direct",
+        value: sec,
+        onChange: setSec,
+        required: true,
+        login: name,
+      }),
       React.createElement(
         "label",
         { className: "aa-bal" },

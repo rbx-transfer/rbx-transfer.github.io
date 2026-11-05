@@ -4,10 +4,10 @@
  * Файл собран из исходника src/MsPanel.ts*.
  */
 
-import { useEffect, useMemo, useState } from "./vendor/react.js";
-import { supabase, errText } from "./supabase.js";
-import { Dropdown, Num, Rbx } from "./ui.js";
-import { noFill } from "./VaultUI.js";
+import { useEffect, useMemo, useState } from "./vendor/react.js?v=3ace7ab5";
+import { supabase, errText } from "./supabase.js?v=3ace7ab5";
+import { Dropdown, Num, Rbx } from "./ui.js?v=3ace7ab5";
+import { noFill } from "./VaultUI.js?v=3ace7ab5";
 const PACKS = [
   { r: 80, usd: 0.99 },
   { r: 500, usd: 4.99 },
