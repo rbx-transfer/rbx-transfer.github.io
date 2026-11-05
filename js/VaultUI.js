@@ -4,9 +4,9 @@
  * Файл собран из исходника src/VaultUI.ts*.
  */
 
-import { useEffect, useRef, useState } from "./vendor/react.js?v=1aac96d1";
-import { supabase, errText } from "./supabase.js?v=1aac96d1";
-import { totp, verifyTotp, base32ToBytes, cleanSecret } from "./vault.js?v=1aac96d1";
+import { useEffect, useRef, useState } from "./vendor/react.js?v=8508abad";
+import { supabase, errText } from "./supabase.js?v=8508abad";
+import { totp, verifyTotp, base32ToBytes, cleanSecret } from "./vault.js?v=8508abad";
 // Отключает автозаполнение браузера и менеджеров паролей (Chrome, Edge, Яндекс, LastPass, 1Password, Bitwarden).
 // Поле пароля намеренно type="text": к type="password" браузер всегда предлагает сохранённые пароли.
 export const noFill = (name) => ({
@@ -31,12 +31,14 @@ export const emptySecret = { password: "", secret: "", code: "" };
 export function SecretFields({ id, value, onChange, required, login }) {
   const [show, setShow] = useState(false);
   const [known, setKnown] = useState(false);
+  const [checked, setChecked] = useState(false); // поиск по базе для текущего логина завершён
   const latest = useRef(value);
   latest.current = value;
   // Поиск аккаунта в базе по логину (с небольшой паузой, пока логин печатается)
   useEffect(() => {
     if (login === undefined) return;
     const name = login.trim().toLowerCase();
+    setChecked(false);
     if (!name) {
       if (known) {
         setKnown(false);
@@ -60,6 +62,7 @@ export function SecretFields({ id, value, onChange, required, login }) {
         setKnown(false);
         onChange({ ...latest.current, secret: "" });
       }
+      setChecked(true);
     }, 400);
     return () => {
       stop = true;
@@ -144,7 +147,25 @@ export function SecretFields({ id, value, onChange, required, login }) {
       : React.createElement(
           "label",
           { className: "sf-key" },
-          "Ключ 2FA",
+          React.createElement(
+            "span",
+            { className: "key-cap" },
+            "Ключ 2FA",
+            login !== undefined &&
+              checked &&
+              login.trim() &&
+              !known &&
+              React.createElement(
+                "a",
+                {
+                  className: "link-2fa",
+                  href: "https://2fa.live/",
+                  target: "_blank",
+                  rel: "noopener noreferrer",
+                },
+                "Открыть 2fa.live ↗",
+              ),
+          ),
           React.createElement("input", {
             id: id + "-2fa",
             ...noFill("key"),

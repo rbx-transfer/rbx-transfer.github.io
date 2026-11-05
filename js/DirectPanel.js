@@ -14,12 +14,12 @@
 //   • логин, пароль и код 2FA, как в других разделах;
 //   • журнал трат: «потрачено робуксов» и «куплено геймпассов на» (× 0,7).
 // =====================================================================
-import { useCallback, useEffect, useState } from "./vendor/react.js?v=1aac96d1";
-import { supabase, errText } from "./supabase.js?v=1aac96d1";
-import { fmt } from "./calc.js?v=1aac96d1";
-import { Num, Rbx } from "./ui.js?v=1aac96d1";
-import { useRoute, href } from "./router.js?v=1aac96d1";
-import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js?v=1aac96d1";
+import { useCallback, useEffect, useState } from "./vendor/react.js?v=8508abad";
+import { supabase, errText } from "./supabase.js?v=8508abad";
+import { fmt } from "./calc.js?v=8508abad";
+import { Num, Rbx } from "./ui.js?v=8508abad";
+import { useRoute, href } from "./router.js?v=8508abad";
+import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js?v=8508abad";
 /** Доля баланса, которая реально доходит до продажи через геймпасс. */
 export const DIRECT_RATE = 0.7;
 // ---------- Расчёты ----------

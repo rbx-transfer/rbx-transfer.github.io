@@ -4,12 +4,12 @@
  * Файл собран из исходника src/SendPanel.ts*.
  */
 
-import { useEffect, useState } from "./vendor/react.js?v=1aac96d1";
-import { supabase, errText } from "./supabase.js?v=1aac96d1";
-import { calcAccount, fmt, dur, fmtDate, DAY } from "./calc.js?v=1aac96d1";
-import { AccessPanel, noFill } from "./VaultUI.js?v=1aac96d1";
-import { PlusBadge } from "./Plus.js?v=1aac96d1";
-import { Dropdown } from "./ui.js?v=1aac96d1";
+import { useEffect, useState } from "./vendor/react.js?v=8508abad";
+import { supabase, errText } from "./supabase.js?v=8508abad";
+import { calcAccount, fmt, dur, fmtDate, DAY } from "./calc.js?v=8508abad";
+import { AccessPanel, noFill } from "./VaultUI.js?v=8508abad";
+import { PlusBadge } from "./Plus.js?v=8508abad";
+import { Dropdown } from "./ui.js?v=8508abad";
 const LS = "rbx-working-account";
 // ---------- Отправка: «Работаю с…» + заказ + «Отправил» ----------
 export function SendPanel({ accounts, transfers, settings, now, say, mode = "transfer" }) {

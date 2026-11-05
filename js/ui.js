@@ -4,7 +4,7 @@
  * Файл собран из исходника src/ui.ts*.
  */
 
-import { useEffect, useRef, useState } from "./vendor/react.js?v=1aac96d1";
+import { useEffect, useRef, useState } from "./vendor/react.js?v=8508abad";
 export function Dropdown({ id, value, options, onChange, placeholder = "—", big }) {
   const [open, setOpen] = useState(false);
   const [hi, setHi] = useState(0);

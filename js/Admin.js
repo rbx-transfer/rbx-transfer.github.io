@@ -4,9 +4,9 @@
  * Файл собран из исходника src/Admin.ts*.
  */
 
-import { useEffect, useState } from "./vendor/react.js?v=1aac96d1";
-import { supabase, errText, kickBroadcast } from "./supabase.js?v=1aac96d1";
-import { Num, Rbx } from "./ui.js?v=1aac96d1";
+import { useEffect, useState } from "./vendor/react.js?v=8508abad";
+import { supabase, errText, kickBroadcast } from "./supabase.js?v=8508abad";
+import { Num, Rbx } from "./ui.js?v=8508abad";
 const d = (x) =>
   x
     ? new Date(x).toLocaleString("ru-RU", {
@@ -802,5 +802,221 @@ export function UserStats({ user, say, backHref }) {
                   ),
             ),
           ),
+  );
+}
+const PERIODS = [
+  ["day", "За день"],
+  ["week", "За неделю"],
+  ["month", "За месяц"],
+  ["all", "За всё время"],
+];
+const CATS = [
+  ["gift_transfer", "Донат гифт · трансфер", "робуксов передано"],
+  ["gift_gamepass", "Донат гифт · геймпасс", "робуксов продано геймпассом"],
+  ["direct", "Донат напрямую (геймпасс)", "робуксов потрачено"],
+  ["ms_packs", "Донат паки (Microsoft)", "робуксов куплено наборами"],
+];
+export function ProfitPage({ say }) {
+  const [data, setData] = useState(null);
+  const [period, setPeriod] = useState("day");
+  async function load() {
+    const { data, error } = await supabase.rpc("admin_profit");
+    if (error) say(errText(error), "err");
+    else setData(data);
+  }
+  useEffect(() => {
+    load();
+  }, []);
+  const cur = data?.[period] || {};
+  const get = (k) => ({
+    count: Number(cur[k]?.count) || 0,
+    robux: Number(cur[k]?.robux) || 0,
+    usd: Number(cur[k]?.usd) || 0,
+  });
+  const total = CATS.reduce(
+    (a, [k]) => {
+      const c = get(k);
+      return { count: a.count + c.count, robux: a.robux + c.robux, usd: a.usd + c.usd };
+    },
+    { count: 0, robux: 0, usd: 0 },
+  );
+  const max = Math.max(1, ...CATS.map(([k]) => get(k).robux));
+  return React.createElement(
+    "section",
+    { className: "profit" },
+    React.createElement(
+      "div",
+      { className: "profit-note" },
+      "Формулу прибыли зададим позже. Пока здесь ",
+      React.createElement("b", null, "оборот"),
+      " по всему сайту: сколько робуксов прошло через каждую категорию и сколько долларов потрачено на наборы Microsoft.",
+    ),
+    React.createElement(
+      "nav",
+      { className: "tabs", role: "tablist" },
+      PERIODS.map(([k, t]) =>
+        React.createElement(
+          "button",
+          {
+            key: k,
+            role: "tab",
+            "aria-selected": period === k,
+            className: period === k ? "on" : "",
+            onClick: () => setPeriod(k),
+          },
+          t,
+        ),
+      ),
+      React.createElement("span", { className: "grow" }),
+      React.createElement("button", { className: "ghost small", onClick: load }, "Обновить"),
+    ),
+    !data
+      ? React.createElement("div", { className: "empty" }, "Загружаю…")
+      : React.createElement(
+          "div",
+          { className: "view-in", key: period },
+          React.createElement(
+            "div",
+            { className: "st-grid stagger" },
+            React.createElement(Tile, { k: "Общая прибыль", v: "—", h: "формула будет позже", accent: true }),
+            React.createElement(Tile, {
+              k: "Оборот",
+              v: React.createElement(
+                React.Fragment,
+                null,
+                React.createElement(Num, { value: total.robux, fmt: n0 }),
+                " ",
+                React.createElement(Rbx, null),
+              ),
+              h: "все категории вместе",
+            }),
+            React.createElement(Tile, {
+              k: "Сделок",
+              v: React.createElement(Num, { value: total.count, fmt: n0 }),
+              h: "переводы, продажи, траты, заказы",
+            }),
+            React.createElement(Tile, { k: "Расход Microsoft", v: usd(total.usd), h: "потрачено на наборы" }),
+          ),
+          React.createElement(
+            "div",
+            { className: "cat-grid stagger" },
+            CATS.map(([k, name, what]) => {
+              const c = get(k);
+              const share = total.robux ? Math.round((c.robux / total.robux) * 100) : 0;
+              return React.createElement(
+                "article",
+                { key: k, className: "cat-card" },
+                React.createElement(
+                  "div",
+                  { className: "cat-h" },
+                  React.createElement("b", null, name),
+                  React.createElement("span", { className: "tag" }, share, "% оборота"),
+                ),
+                React.createElement(
+                  "div",
+                  { className: "cat-v num" },
+                  React.createElement(Num, { value: c.robux, fmt: n0 }),
+                  " ",
+                  React.createElement(Rbx, null),
+                ),
+                React.createElement("div", { className: "tag" }, what),
+                React.createElement(
+                  "div",
+                  { className: "cat-bar" },
+                  React.createElement("i", { style: { width: (c.robux / max) * 100 + "%" } }),
+                ),
+                React.createElement(
+                  "div",
+                  { className: "cat-row" },
+                  React.createElement(
+                    "span",
+                    null,
+                    "сделок ",
+                    React.createElement("b", { className: "num" }, n0(c.count)),
+                  ),
+                  k === "ms_packs" &&
+                    React.createElement(
+                      "span",
+                      null,
+                      "расход ",
+                      React.createElement("b", { className: "num" }, usd(c.usd)),
+                    ),
+                  k === "direct" &&
+                    React.createElement(
+                      "span",
+                      null,
+                      "геймпассов на ",
+                      React.createElement("b", { className: "num" }, n0(Math.floor(c.robux * 0.7))),
+                    ),
+                  React.createElement("span", null, "прибыль ", React.createElement("b", null, "—")),
+                ),
+              );
+            }),
+          ),
+          React.createElement(
+            "div",
+            { className: "card ms-card" },
+            React.createElement(
+              "div",
+              { className: "ms-card-h" },
+              React.createElement("h2", null, "Все периоды"),
+              React.createElement("span", { className: "tag" }, "оборот, R$"),
+            ),
+            React.createElement(
+              "div",
+              { className: "tbl" },
+              React.createElement(
+                "table",
+                { className: "period-tbl" },
+                React.createElement(
+                  "thead",
+                  null,
+                  React.createElement(
+                    "tr",
+                    null,
+                    React.createElement("th", null, "Категория"),
+                    PERIODS.map(([k, t]) =>
+                      React.createElement("th", { key: k, className: "n" }, t.replace("За ", "")),
+                    ),
+                  ),
+                ),
+                React.createElement(
+                  "tbody",
+                  null,
+                  CATS.map(([k, name]) =>
+                    React.createElement(
+                      "tr",
+                      { key: k },
+                      React.createElement("td", null, name),
+                      PERIODS.map(([p]) =>
+                        React.createElement(
+                          "td",
+                          { key: p, className: "n num" },
+                          n0(Number(data[p]?.[k]?.robux) || 0),
+                        ),
+                      ),
+                    ),
+                  ),
+                  React.createElement(
+                    "tr",
+                    { className: "sum-row" },
+                    React.createElement("td", null, React.createElement("b", null, "Всего")),
+                    PERIODS.map(([p]) =>
+                      React.createElement(
+                        "td",
+                        { key: p, className: "n num" },
+                        React.createElement(
+                          "b",
+                          null,
+                          n0(CATS.reduce((a, [k]) => a + (Number(data[p]?.[k]?.robux) || 0), 0)),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
   );
 }

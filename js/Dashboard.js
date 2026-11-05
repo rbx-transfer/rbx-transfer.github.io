@@ -4,18 +4,18 @@
  * Файл собран из исходника src/Dashboard.ts*.
  */
 
-import { useEffect, useRef, useState } from "./vendor/react.js?v=1aac96d1";
-import { supabase, errText, kickBroadcast } from "./supabase.js?v=1aac96d1";
-import { kindOf, calcAccount, fmt, fmtDate, dur, toLocalInput, DAY } from "./calc.js?v=1aac96d1";
-import { useTeamData } from "./useTeamData.js?v=1aac96d1";
-import { SendPanel, Buyers } from "./SendPanel.js?v=1aac96d1";
-import { PlusField, PlusBadge } from "./Plus.js?v=1aac96d1";
-import { MsPanel } from "./MsPanel.js?v=1aac96d1";
-import { DirectPanel } from "./DirectPanel.js?v=1aac96d1";
-import { useRoute, go, href } from "./router.js?v=1aac96d1";
-import { InviteCodes, Blacklist, UserStats } from "./Admin.js?v=1aac96d1";
-import { Num, Rbx, ToastView } from "./ui.js?v=1aac96d1";
-import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js?v=1aac96d1";
+import { useEffect, useRef, useState } from "./vendor/react.js?v=8508abad";
+import { supabase, errText, kickBroadcast } from "./supabase.js?v=8508abad";
+import { kindOf, calcAccount, fmt, fmtDate, dur, toLocalInput, DAY } from "./calc.js?v=8508abad";
+import { useTeamData } from "./useTeamData.js?v=8508abad";
+import { SendPanel, Buyers } from "./SendPanel.js?v=8508abad";
+import { PlusField, PlusBadge } from "./Plus.js?v=8508abad";
+import { MsPanel } from "./MsPanel.js?v=8508abad";
+import { DirectPanel } from "./DirectPanel.js?v=8508abad";
+import { useRoute, go, href } from "./router.js?v=8508abad";
+import { InviteCodes, Blacklist, UserStats, ProfitPage } from "./Admin.js?v=8508abad";
+import { Num, Rbx, ToastView } from "./ui.js?v=8508abad";
+import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js?v=8508abad";
 function ls(k, d) {
   try {
     return localStorage.getItem(k) || d;
@@ -106,6 +106,7 @@ function DashboardInner({ email, userId }) {
             me: userId,
             say: say,
             statId: route[1] === "user" ? route[2] : undefined,
+            page: route[1],
             backHref: href(siteBack),
           }),
         )
@@ -1431,7 +1432,7 @@ export function AdminPanel({ me, say, rev = 0, onChange = () => {} }) {
           ),
   );
 }
-function AdminView({ me, say, statId, backHref }) {
+function AdminView({ me, say, statId, page, backHref }) {
   const [rev, setRev] = useState(0);
   const bump = () => setRev((r) => r + 1);
   // Статистика пользователя — отдельная страница #/admin/user/<id>
@@ -1451,16 +1452,46 @@ function AdminView({ me, say, statId, backHref }) {
         "div",
         null,
         React.createElement("h1", null, "Админка"),
-        React.createElement(
-          "p",
-          null,
-          "Коды приглашений, пользователи и чёрный список. Видно только администратору.",
-        ),
+        React.createElement("p", null, "Видно только администратору."),
       ),
       React.createElement("a", { className: "btn", href: backHref }, "← Вернуться на сайт"),
     ),
-    React.createElement(InviteCodes, { say: say }),
-    React.createElement(AdminPanel, { me: me, say: say, rev: rev, onChange: bump }),
-    React.createElement(Blacklist, { say: say, rev: rev, onChange: bump }),
+    React.createElement(
+      "nav",
+      { className: "tabs", role: "tablist" },
+      React.createElement(
+        "a",
+        {
+          role: "tab",
+          "aria-selected": page !== "profit",
+          className: "tab-link" + (page !== "profit" ? " on" : ""),
+          href: href("admin"),
+        },
+        "Пользователи и коды",
+      ),
+      React.createElement(
+        "a",
+        {
+          role: "tab",
+          "aria-selected": page === "profit",
+          className: "tab-link" + (page === "profit" ? " on" : ""),
+          href: href("admin/profit"),
+        },
+        "Прибыль",
+      ),
+    ),
+    React.createElement(
+      "div",
+      { className: "view-in", key: page || "main" },
+      page === "profit"
+        ? React.createElement(ProfitPage, { say: say })
+        : React.createElement(
+            React.Fragment,
+            null,
+            React.createElement(InviteCodes, { say: say }),
+            React.createElement(AdminPanel, { me: me, say: say, rev: rev, onChange: bump }),
+            React.createElement(Blacklist, { say: say, rev: rev, onChange: bump }),
+          ),
+    ),
   );
 }
