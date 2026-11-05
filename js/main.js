@@ -4,11 +4,12 @@
  * Файл собран из исходника src/main.ts*.
  */
 
-import { StrictMode, useEffect, useState } from "./vendor/react.js?v=3ace7ab5";
-import { createRoot } from "./vendor/react-dom-client.js?v=3ace7ab5";
-import { supabase, configured, onKick } from "./supabase.js?v=3ace7ab5";
-import { AuthScreen, NewPasswordScreen } from "./Auth.js?v=3ace7ab5";
-import { Dashboard } from "./Dashboard.js?v=3ace7ab5";
+import { StrictMode, useEffect, useState } from "./vendor/react.js?v=1aac96d1";
+import { createRoot } from "./vendor/react-dom-client.js?v=1aac96d1";
+import { supabase, configured, onKick } from "./supabase.js?v=1aac96d1";
+import { AuthScreen, NewPasswordScreen } from "./Auth.js?v=1aac96d1";
+import { Dashboard } from "./Dashboard.js?v=1aac96d1";
+import { restoreRoute } from "./router.js?v=1aac96d1";
 function App() {
   const [session, setSession] = useState(null);
   const [ready, setReady] = useState(false);
@@ -109,6 +110,7 @@ function App() {
 }
 if (!document.querySelector(".bg-coins"))
   document.body.insertAdjacentHTML("afterbegin", '<div class="bg-coins" aria-hidden="true"></div>');
+restoreRoute("gift/transfer/send");
 createRoot(document.getElementById("root")).render(
   React.createElement(StrictMode, null, React.createElement(App, null)),
 );

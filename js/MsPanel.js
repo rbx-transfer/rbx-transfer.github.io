@@ -4,10 +4,11 @@
  * Файл собран из исходника src/MsPanel.ts*.
  */
 
-import { useEffect, useMemo, useState } from "./vendor/react.js?v=3ace7ab5";
-import { supabase, errText } from "./supabase.js?v=3ace7ab5";
-import { Dropdown, Num, Rbx } from "./ui.js?v=3ace7ab5";
-import { noFill } from "./VaultUI.js?v=3ace7ab5";
+import { useEffect, useMemo, useState } from "./vendor/react.js?v=1aac96d1";
+import { supabase, errText } from "./supabase.js?v=1aac96d1";
+import { Dropdown, Num, Rbx } from "./ui.js?v=1aac96d1";
+import { useRoute, go, href } from "./router.js?v=1aac96d1";
+import { noFill } from "./VaultUI.js?v=1aac96d1";
 const PACKS = [
   { r: 80, usd: 0.99 },
   { r: 500, usd: 4.99 },
@@ -83,11 +84,10 @@ function useMs(say) {
 }
 export function MsPanel({ say }) {
   const ms = useMs(say);
-  const [tab, setTabS] = useState(() => lsGet("rbx-ms-tab", "packs"));
-  const setTab = (t) => {
-    setTabS(t);
-    lsSet("rbx-ms-tab", t);
-  };
+  // Вкладка раздела берётся из адреса: #/packs/<вкладка>
+  const route = useRoute();
+  const tab = ["packs", "code", "accounts", "log"].includes(route[1]) ? route[1] : "packs";
+  const setTab = (t) => go("packs/" + t);
   const [accId, setAccIdS] = useState(() => lsGet("rbx-ms-acc", ""));
   const setAccId = (v) => {
     setAccIdS(v);
@@ -160,13 +160,13 @@ export function MsPanel({ say }) {
         ["log", "Журнал"],
       ].map(([k, t, c]) =>
         React.createElement(
-          "button",
+          "a",
           {
             key: k,
             role: "tab",
             "aria-selected": tab === k,
-            className: tab === k ? "on" : "",
-            onClick: () => setTab(k),
+            className: "tab-link" + (tab === k ? " on" : ""),
+            href: href("packs/" + k),
           },
           t,
           c && React.createElement("sup", null, c),

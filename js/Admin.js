@@ -4,9 +4,9 @@
  * Файл собран из исходника src/Admin.ts*.
  */
 
-import { useEffect, useState } from "./vendor/react.js?v=3ace7ab5";
-import { supabase, errText, kickBroadcast } from "./supabase.js?v=3ace7ab5";
-import { Num, Rbx } from "./ui.js?v=3ace7ab5";
+import { useEffect, useState } from "./vendor/react.js?v=1aac96d1";
+import { supabase, errText, kickBroadcast } from "./supabase.js?v=1aac96d1";
+import { Num, Rbx } from "./ui.js?v=1aac96d1";
 const d = (x) =>
   x
     ? new Date(x).toLocaleString("ru-RU", {
@@ -423,7 +423,7 @@ function Tile({ k, v, h, accent }) {
     h && React.createElement("span", { className: "h" }, h),
   );
 }
-export function UserStats({ user, say, onBack }) {
+export function UserStats({ user, say, backHref }) {
   const [st, setSt] = useState(null);
   const [tab, setTab] = useState(() => {
     try {
@@ -471,7 +471,7 @@ export function UserStats({ user, say, onBack }) {
         React.createElement(
           "p",
           { className: "st-mail" },
-          user.email,
+          st?.email || user.email,
           st?.blocked &&
             React.createElement("span", { className: "pill blk", style: { marginLeft: 8 } }, "в ЧС"),
         ),
@@ -480,7 +480,7 @@ export function UserStats({ user, say, onBack }) {
         "span",
         { className: "ms-row" },
         React.createElement("button", { className: "ghost", onClick: load }, "Обновить"),
-        React.createElement("button", { onClick: onBack }, "← К пользователям"),
+        React.createElement("a", { className: "btn", href: backHref }, "← К пользователям"),
       ),
     ),
     err && !st

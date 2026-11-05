@@ -4,9 +4,9 @@
  * Файл собран из исходника src/VaultUI.ts*.
  */
 
-import { useEffect, useRef, useState } from "./vendor/react.js?v=3ace7ab5";
-import { supabase, errText } from "./supabase.js?v=3ace7ab5";
-import { totp, verifyTotp, base32ToBytes, cleanSecret } from "./vault.js?v=3ace7ab5";
+import { useEffect, useRef, useState } from "./vendor/react.js?v=1aac96d1";
+import { supabase, errText } from "./supabase.js?v=1aac96d1";
+import { totp, verifyTotp, base32ToBytes, cleanSecret } from "./vault.js?v=1aac96d1";
 // Отключает автозаполнение браузера и менеджеров паролей (Chrome, Edge, Яндекс, LastPass, 1Password, Bitwarden).
 // Поле пароля намеренно type="text": к type="password" браузер всегда предлагает сохранённые пароли.
 export const noFill = (name) => ({

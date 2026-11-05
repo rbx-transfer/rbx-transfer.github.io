@@ -4,17 +4,18 @@
  * Файл собран из исходника src/Dashboard.ts*.
  */
 
-import { useEffect, useRef, useState } from "./vendor/react.js?v=3ace7ab5";
-import { supabase, errText, kickBroadcast } from "./supabase.js?v=3ace7ab5";
-import { kindOf, calcAccount, fmt, fmtDate, dur, toLocalInput, DAY } from "./calc.js?v=3ace7ab5";
-import { useTeamData } from "./useTeamData.js?v=3ace7ab5";
-import { SendPanel, Buyers } from "./SendPanel.js?v=3ace7ab5";
-import { PlusField, PlusBadge } from "./Plus.js?v=3ace7ab5";
-import { MsPanel } from "./MsPanel.js?v=3ace7ab5";
-import { DirectPanel } from "./DirectPanel.js?v=3ace7ab5";
-import { InviteCodes, Blacklist, UserStats } from "./Admin.js?v=3ace7ab5";
-import { Num, Rbx, ToastView } from "./ui.js?v=3ace7ab5";
-import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js?v=3ace7ab5";
+import { useEffect, useRef, useState } from "./vendor/react.js?v=1aac96d1";
+import { supabase, errText, kickBroadcast } from "./supabase.js?v=1aac96d1";
+import { kindOf, calcAccount, fmt, fmtDate, dur, toLocalInput, DAY } from "./calc.js?v=1aac96d1";
+import { useTeamData } from "./useTeamData.js?v=1aac96d1";
+import { SendPanel, Buyers } from "./SendPanel.js?v=1aac96d1";
+import { PlusField, PlusBadge } from "./Plus.js?v=1aac96d1";
+import { MsPanel } from "./MsPanel.js?v=1aac96d1";
+import { DirectPanel } from "./DirectPanel.js?v=1aac96d1";
+import { useRoute, go, href } from "./router.js?v=1aac96d1";
+import { InviteCodes, Blacklist, UserStats } from "./Admin.js?v=1aac96d1";
+import { Num, Rbx, ToastView } from "./ui.js?v=1aac96d1";
+import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js?v=1aac96d1";
 function ls(k, d) {
   try {
     return localStorage.getItem(k) || d;
@@ -43,27 +44,15 @@ export function Dashboard({ email, userId }) {
 function DashboardInner({ email, userId }) {
   const data = useTeamData(userId);
   const now = useNow();
-  const [tab, setTabS] = useState(() => {
-    const v = ls("rbx-gift-tab", "send");
-    return ["send", "accounts", "journal", "buyers"].includes(v) ? v : "send";
-  });
-  const setTab = (v) => {
-    setTabS(v);
-    lsSet("rbx-gift-tab", v);
-  };
-  const [section, setSectionS] = useState(() => {
-    const v = ls("rbx-section", "gift");
-    return v === "packs" || v === "direct" ? v : "gift";
-  });
-  const [mode, setModeS] = useState(() => ls("rbx-gift-mode", "transfer"));
-  const setSection = (v) => {
-    setSectionS(v);
-    lsSet("rbx-section", v);
-  };
-  const setMode = (v) => {
-    setModeS(v);
-    lsSet("rbx-gift-mode", v);
-  };
+  // Страница определяется адресом: #/раздел/... (см. router.ts)
+  const route = useRoute();
+  const section = route[0] === "packs" || route[0] === "direct" || route[0] === "admin" ? route[0] : "gift";
+  const mode = route[1] === "gamepass" ? "gamepass" : "transfer";
+  const tab = ["send", "accounts", "journal", "buyers"].includes(route[2]) ? route[2] : "send";
+  const setTab = (v) => go(`gift/${mode}/${v}`);
+  // последняя страница сайта (не админки) — сюда ведёт кнопка «К сайту»
+  if (section !== "admin") lsSet("rbx-last-site", route.join("/") || "gift/transfer/send");
+  const siteBack = ls("rbx-last-site", "gift/transfer/send");
   const [jq, setJq] = useState("");
   const [toast, setToast] = useState(null);
   const tRef = useRef(0);
@@ -79,11 +68,7 @@ function DashboardInner({ email, userId }) {
       kind === "err" ? 5000 : 3500,
     );
   };
-  const [admin, setAdminS] = useState(() => ls("rbx-admin", "0") === "1");
-  const setAdmin = (v) => {
-    setAdminS(v);
-    lsSet("rbx-admin", v ? "1" : "0");
-  };
+  const admin = section === "admin";
   if (data.loading)
     return React.createElement(
       Shell,
@@ -105,13 +90,24 @@ function DashboardInner({ email, userId }) {
   const nx = next;
   return React.createElement(
     Shell,
-    { email: email, clock: now, isAdmin: data.isAdmin, admin: admin, onAdmin: () => setAdmin(!admin) },
+    {
+      email: email,
+      clock: now,
+      isAdmin: data.isAdmin,
+      admin: admin,
+      adminHref: href(admin ? siteBack : "admin"),
+    },
     data.error && React.createElement("div", { className: "notice" }, "Ошибка загрузки: ", data.error),
     admin && data.isAdmin
       ? React.createElement(
           "div",
           { className: "view-in", key: "admin" },
-          React.createElement(AdminView, { me: userId, say: say, onBack: () => setAdmin(false) }),
+          React.createElement(AdminView, {
+            me: userId,
+            say: say,
+            statId: route[1] === "user" ? route[2] : undefined,
+            backHref: href(siteBack),
+          }),
         )
       : React.createElement(
           React.Fragment,
@@ -125,13 +121,13 @@ function DashboardInner({ email, userId }) {
               ["direct", "Донат напрямую (геймпасс)"],
             ].map(([k, t]) =>
               React.createElement(
-                "button",
+                "a",
                 {
                   key: k,
                   role: "tab",
                   "aria-selected": section === k,
-                  className: section === k ? "on" : "",
-                  onClick: () => setSection(k),
+                  className: "tab-link" + (section === k ? " on" : ""),
+                  href: href(k === "gift" ? `gift/${mode}/${tab}` : k),
                 },
                 t,
               ),
@@ -161,13 +157,13 @@ function DashboardInner({ email, userId }) {
                   ["transfer", "Трансфер"],
                 ].map(([k, t]) =>
                   React.createElement(
-                    "button",
+                    "a",
                     {
                       key: k,
                       role: "tab",
                       "aria-selected": mode === k,
-                      className: mode === k ? "on" : "",
-                      onClick: () => setMode(k),
+                      className: "tab-link" + (mode === k ? " on" : ""),
+                      href: href(`gift/${k}/${tab}`),
                     },
                     t,
                   ),
@@ -230,13 +226,13 @@ function DashboardInner({ email, userId }) {
                   ["buyers", "Покупатели"],
                 ].map(([k, t]) =>
                   React.createElement(
-                    "button",
+                    "a",
                     {
                       key: k,
                       role: "tab",
                       "aria-selected": tab === k,
-                      className: tab === k ? "on" : "",
-                      onClick: () => setTab(k),
+                      className: "tab-link" + (tab === k ? " on" : ""),
+                      href: href(`gift/${mode}/${k}`),
                     },
                     t,
                   ),
@@ -290,7 +286,7 @@ function DashboardInner({ email, userId }) {
     React.createElement(ToastView, { t: toast }),
   );
 }
-function Shell({ email, clock, children, isAdmin, admin, onAdmin }) {
+function Shell({ email, clock, children, isAdmin, admin, adminHref }) {
   return React.createElement(
     React.Fragment,
     null,
@@ -301,8 +297,8 @@ function Shell({ email, clock, children, isAdmin, admin, onAdmin }) {
         "div",
         { className: "topbar-in" },
         React.createElement(
-          "div",
-          { className: "brandrow" },
+          "a",
+          { className: "brandrow", href: href("gift/transfer/send"), title: "На главную" },
           React.createElement(Mark, null),
           React.createElement(
             "span",
@@ -329,8 +325,8 @@ function Shell({ email, clock, children, isAdmin, admin, onAdmin }) {
           { className: "who" },
           isAdmin &&
             React.createElement(
-              "button",
-              { className: "admin-btn" + (admin ? " on" : ""), onClick: onAdmin, title: "Админка" },
+              "a",
+              { className: "admin-btn" + (admin ? " on" : ""), href: adminHref, title: "Админка" },
               React.createElement(
                 "svg",
                 { width: "15", height: "15", viewBox: "0 0 24 24", "aria-hidden": "true" },
@@ -800,6 +796,7 @@ function EditAccount({ gp, acc, balance, transfers, say, onClose }) {
           value: sec,
           onChange: setSec,
           required: false,
+          login: acc.name,
         }),
       ),
     React.createElement(
@@ -1219,7 +1216,7 @@ const Ic = {
     }),
   ),
 };
-export function AdminPanel({ me, say, rev = 0, onChange = () => {}, onStats }) {
+export function AdminPanel({ me, say, rev = 0, onChange = () => {} }) {
   const [users, setUsers] = useState(null);
   const [q, setQ] = useState("");
   const [confirm, setConfirm] = useState(null);
@@ -1383,11 +1380,8 @@ export function AdminPanel({ me, say, rev = 0, onChange = () => {}, onStats }) {
                             "span",
                             { className: "act-row" },
                             React.createElement(
-                              "button",
-                              {
-                                className: "act act-stat",
-                                onClick: () => onStats({ id: u.id, email: u.email }),
-                              },
+                              "a",
+                              { className: "act act-stat", href: href("admin/user/" + u.id) },
                               Ic.stats,
                               "Статистика",
                             ),
@@ -1437,32 +1431,15 @@ export function AdminPanel({ me, say, rev = 0, onChange = () => {}, onStats }) {
           ),
   );
 }
-function AdminView({ me, say, onBack }) {
+function AdminView({ me, say, statId, backHref }) {
   const [rev, setRev] = useState(0);
   const bump = () => setRev((r) => r + 1);
-  const [stat, setStatS] = useState(() => {
-    try {
-      const v = localStorage.getItem("rbx-admin-user");
-      return v ? JSON.parse(v) : null;
-    } catch {
-      return null;
-    }
-  });
-  const setStat = (v) => {
-    setStatS(v);
-    try {
-      if (v) localStorage.setItem("rbx-admin-user", JSON.stringify(v));
-      else localStorage.removeItem("rbx-admin-user");
-    } catch {
-      /* ignore */
-    }
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-  if (stat)
+  // Статистика пользователя — отдельная страница #/admin/user/<id>
+  if (statId)
     return React.createElement(
       "div",
-      { className: "view-in", key: "st-" + stat.id },
-      React.createElement(UserStats, { user: stat, say: say, onBack: () => setStat(null) }),
+      { className: "view-in", key: "st-" + statId },
+      React.createElement(UserStats, { user: { id: statId, email: "" }, say: say, backHref: href("admin") }),
     );
   return React.createElement(
     "section",
@@ -1480,10 +1457,10 @@ function AdminView({ me, say, onBack }) {
           "Коды приглашений, пользователи и чёрный список. Видно только администратору.",
         ),
       ),
-      React.createElement("button", { onClick: onBack }, "← Вернуться на сайт"),
+      React.createElement("a", { className: "btn", href: backHref }, "← Вернуться на сайт"),
     ),
     React.createElement(InviteCodes, { say: say }),
-    React.createElement(AdminPanel, { me: me, say: say, rev: rev, onChange: bump, onStats: setStat }),
+    React.createElement(AdminPanel, { me: me, say: say, rev: rev, onChange: bump }),
     React.createElement(Blacklist, { say: say, rev: rev, onChange: bump }),
   );
 }

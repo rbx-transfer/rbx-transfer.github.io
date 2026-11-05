@@ -14,11 +14,12 @@
 //   • логин, пароль и код 2FA, как в других разделах;
 //   • журнал трат: «потрачено робуксов» и «куплено геймпассов на» (× 0,7).
 // =====================================================================
-import { useCallback, useEffect, useState } from "./vendor/react.js?v=3ace7ab5";
-import { supabase, errText } from "./supabase.js?v=3ace7ab5";
-import { fmt } from "./calc.js?v=3ace7ab5";
-import { Num, Rbx } from "./ui.js?v=3ace7ab5";
-import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js?v=3ace7ab5";
+import { useCallback, useEffect, useState } from "./vendor/react.js?v=1aac96d1";
+import { supabase, errText } from "./supabase.js?v=1aac96d1";
+import { fmt } from "./calc.js?v=1aac96d1";
+import { Num, Rbx } from "./ui.js?v=1aac96d1";
+import { useRoute, href } from "./router.js?v=1aac96d1";
+import { SecretFields, emptySecret, sealSecrets, AccessPanel, noFill } from "./VaultUI.js?v=1aac96d1";
 /** Доля баланса, которая реально доходит до продажи через геймпасс. */
 export const DIRECT_RATE = 0.7;
 // ---------- Расчёты ----------
@@ -99,21 +100,9 @@ function useTick() {
 export function DirectPanel({ say }) {
   const data = useDirect();
   const now = useTick();
-  const [tab, setTabS] = useState(() => {
-    try {
-      return localStorage.getItem("rbx-direct-tab") === "journal" ? "journal" : "accounts";
-    } catch {
-      return "accounts";
-    }
-  });
-  const setTab = (t) => {
-    setTabS(t);
-    try {
-      localStorage.setItem("rbx-direct-tab", t);
-    } catch {
-      /* ignore */
-    }
-  };
+  // Вкладка раздела берётся из адреса: #/direct/<вкладка>
+  const route = useRoute();
+  const tab = route[1] === "journal" ? "journal" : "accounts";
   if (data.loading) return React.createElement("div", { className: "empty" }, "Загружаю…");
   const totalBalance = data.accs.reduce((s, a) => s + balanceOf(a, data.spends), 0);
   const totalSpent = data.spends.reduce((s, x) => s + x.robux, 0);
@@ -174,22 +163,22 @@ export function DirectPanel({ say }) {
       "nav",
       { className: "tabs", role: "tablist" },
       React.createElement(
-        "button",
+        "a",
         {
           role: "tab",
           "aria-selected": tab === "accounts",
-          className: tab === "accounts" ? "on" : "",
-          onClick: () => setTab("accounts"),
+          className: "tab-link" + (tab === "accounts" ? " on" : ""),
+          href: href("direct/accounts"),
         },
         "Аккаунты",
       ),
       React.createElement(
-        "button",
+        "a",
         {
           role: "tab",
           "aria-selected": tab === "journal",
-          className: tab === "journal" ? "on" : "",
-          onClick: () => setTab("journal"),
+          className: "tab-link" + (tab === "journal" ? " on" : ""),
+          href: href("direct/journal"),
         },
         "Журнал",
       ),
@@ -542,6 +531,7 @@ function EditDirect({ acc, balance, data, say, onClose }) {
           value: sec,
           onChange: setSec,
           required: false,
+          login: acc.name,
         }),
       ),
     React.createElement(
